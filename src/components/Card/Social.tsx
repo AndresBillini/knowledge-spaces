@@ -28,7 +28,6 @@ export default function Social({ social, disableUserSelect, getHostname }: Socia
             width="100%"
           >
           <source src={firstVideo.video_url} type="video/mp4" />
-          <track kind="captions" label="English captions" srcLang="en" src="" default />
           Your browser does not support the video tag.
         </video>
         )

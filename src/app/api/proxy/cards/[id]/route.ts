@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
+type tParams = Promise<{ id: string }>;
+
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: tParams }
 ) {
-  const { id } = await params;
+  const { id } = await context.params;
 
   const apiUrl = `http://54.198.139.161/api/cards/${id}/`;
 

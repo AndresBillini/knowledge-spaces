@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
+type tParams = Promise<{ id: string }>;
+
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: tParams }
 ) {
   const { id } = await params;
 

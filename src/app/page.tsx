@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { getCards } from "@/api";
 import SearchBar from "@/components/SearchBar/SearchBar";
 import Spinner from "@/components/Spinner/Spinner";
@@ -10,26 +9,10 @@ import { CardModel, PaginationCards } from "@/models/Card";
 import "./page.module.css";
 
 export default function HomePage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [cards, setCards] = useState<CardModel[]>([]);
   const [nextPageUrl, setNextPageUrl] = useState<string | undefined>(undefined);
-  const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
   const observerRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      const search = searchParams.get("search") || "";
-      const page = searchParams.get("page") || "1";
-      const data = await getCards(page, search);
-      setCards(data.results);
-      setNextPageUrl(data.next);
-    };
-
-    fetchInitialData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);// Only for initial fetch
 
   const fetchMore = async (url: string) => {
     if (!url) return;
@@ -66,21 +49,11 @@ export default function HomePage() {
     };
   }, [nextPageUrl]);
 
-  const handleSearchInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchTerm(value);
-    router.replace(`/?search=${value}`); // update the query params
-    setCards([]);
-    setNextPageUrl(undefined);
-    const data = await getCards("1", value);
-    setCards(data.results);
-    setNextPageUrl(data.next);
-  };
-
   return (
     <main className="main-container">
-      <SearchBar searchTerm={searchTerm} handleSearchInput={handleSearchInput} />
-
+      <Suspense fallback={<Spinner />}>
+        <SearchBar setCards={setCards} setNextPageUrl={setNextPageUrl} />
+      </Suspense>
       {cards.length > 0 && <CardList cards={cards} />}
 
       {!!nextPageUrl && (
