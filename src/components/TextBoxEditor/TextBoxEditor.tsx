@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useCallback } from "react";
 import type { FocusEvent } from "react";
 import CloseIcon from '@/components/Icons/close.svg';
 import "./textboxeditor.css";
@@ -17,13 +17,19 @@ interface TextBoxProps {
 }
 
 export default function TextBoxEditor({ box, setTextBoxes }: TextBoxProps) {
-  const onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+  const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const target = e.currentTarget;
+    target.setPointerCapture(e.pointerId);
+
     if (document.activeElement === e.currentTarget) return;
-  
+
     const offsetX = e.clientX - box.x;
     const offsetY = e.clientY - box.y;
-  
-    const handleMove = (eMove: MouseEvent) => {
+
+    const handleMove = (eMove: PointerEvent) => {
       setTextBoxes((prev) =>
         prev.map((tb) =>
           tb.id === box.id
@@ -32,15 +38,44 @@ export default function TextBoxEditor({ box, setTextBoxes }: TextBoxProps) {
         )
       );
     };
-  
+
     const handleUp = () => {
-      window.removeEventListener("mousemove", handleMove);
-      window.removeEventListener("mouseup", handleUp);
+      target.releasePointerCapture(e.pointerId);
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", handleUp);
     };
-  
-    window.addEventListener("mousemove", handleMove);
-    window.addEventListener("mouseup", handleUp);
-  };
+
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", handleUp);
+  }, [box, setTextBoxes]);
+
+  const onTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const touch = e.touches[0];
+    const offsetX = touch.clientX - box.x;
+    const offsetY = touch.clientY - box.y;
+
+    const handleMove = (eMove: TouchEvent) => {
+      const moveTouch = eMove.touches[0];
+      setTextBoxes((prev) =>
+        prev.map((tb) =>
+          tb.id === box.id
+            ? { ...tb, x: moveTouch.clientX - offsetX, y: moveTouch.clientY - offsetY }
+            : tb
+        )
+      );
+    };
+
+    const handleUp = () => {
+      window.removeEventListener("touchmove", handleMove);
+      window.removeEventListener("touchend", handleUp);
+    };
+
+    window.addEventListener("touchmove", handleMove, { passive: false });
+    window.addEventListener("touchend", handleUp);
+  }, [box, setTextBoxes]);
 
   const onBlur = (e: FocusEvent<HTMLDivElement>) => {
     const newText = (e.target as HTMLElement).innerText;
@@ -57,8 +92,11 @@ export default function TextBoxEditor({ box, setTextBoxes }: TextBoxProps) {
         top: box.y,
       }}
     >
-      <div className="drag-handle" onMouseDown={onMouseDown}>
-      </div>
+      <div 
+        className="drag-handle"
+        onPointerDown={onPointerDown} 
+        onTouchStart={onTouchStart}
+      />
       <div className="canvas-text-box-wrapper">
         <div
           className="canvas-text-box"
@@ -67,7 +105,6 @@ export default function TextBoxEditor({ box, setTextBoxes }: TextBoxProps) {
           suppressContentEditableWarning
           onBlur={onBlur}
           dangerouslySetInnerHTML={{ __html: box.text }}
-          onMouseDown={onMouseDown}
         />
       </div>
       <button

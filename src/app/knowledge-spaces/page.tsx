@@ -43,6 +43,9 @@ export default function Spaces() {
   }, [cards]);
 
   const handlePointerDown = useCallback((id: number, e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     const canvasRect = document.querySelector(".canvas")!.getBoundingClientRect();
     dragCardId.current = id;
     setDraggedId(id);
@@ -56,9 +59,34 @@ export default function Spaces() {
       x: e.clientX - canvasRect.left - pos.x,
       y: e.clientY - canvasRect.top - pos.y,
     };
+
     window.addEventListener("pointermove", handlePointerMove);
     window.addEventListener("pointerup", handlePointerUp);
   }, [positions])
+
+  const handleTouchStart = useCallback((id: number, e: React.TouchEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  
+    const touch = e.touches[0];
+    const canvasRect = document.querySelector(".canvas")!.getBoundingClientRect();
+  
+    dragCardId.current = id;
+    setDraggedId(id);
+  
+    const pos = positions[id] ?? {
+      x: 150 + (cards.findIndex((c) => c.id === id) % 5) * 260,
+      y: 100 + Math.floor(cards.findIndex((c) => c.id === id) / 5) * 200,
+    };
+  
+    dragOffset.current = {
+      x: touch.clientX - canvasRect.left - pos.x,
+      y: touch.clientY - canvasRect.top - pos.y,
+    };
+  
+    window.addEventListener("touchmove", handleTouchMove);
+    window.addEventListener("touchend", handleTouchEnd);
+  }, [positions]);
 
   const handlePointerMove = useCallback((e: PointerEvent) => {
     if (dragCardId.current === null) return;
@@ -69,12 +97,33 @@ export default function Spaces() {
     setPositions((prev) => ({ ...prev, [id]: { x: newX, y: newY } }));
   }, []);
 
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+    if (dragCardId.current === null) return;
+    const id = dragCardId.current;
+  
+    const touch = e.touches[0];
+    const canvasRect = document.querySelector(".canvas")!.getBoundingClientRect();
+  
+    const newX = touch.clientX - canvasRect.left - dragOffset.current.x;
+    const newY = touch.clientY - canvasRect.top - dragOffset.current.y;
+  
+    setPositions((prev) => ({ ...prev, [id]: { x: newX, y: newY } }));
+  }, []);
+
   const handlePointerUp = useCallback(() => {
     dragCardId.current = null;
     setDraggedId(null);
     window.removeEventListener("pointermove", handlePointerMove);
     window.removeEventListener("pointerup", handlePointerUp);
   }, [handlePointerMove]);
+
+  const handleTouchEnd = useCallback(() => {
+    dragCardId.current = null;
+    setDraggedId(null);
+  
+    window.removeEventListener("touchmove", handleTouchMove);
+    window.removeEventListener("touchend", handleTouchEnd);
+  }, [handleTouchMove]);
 
   const handleCardClick = useCallback(async (cardId: number) => {
     if (mode === "default") return;
@@ -147,10 +196,8 @@ export default function Spaces() {
           return (
             <Knowledge 
               key={card.id} card={card} pos={pos}
-              onPointerDown={(e) => {
-                e.stopPropagation();
-                handlePointerDown(card.id, e);
-              }}
+              onPointerDown={(e) => handlePointerDown(card.id, e)}
+              onTouchStart={(e) => handleTouchStart(card.id, e)}
               isDragging={draggedId === card.id}
               isSelected={selectedCard === card.id}
               mode={mode}

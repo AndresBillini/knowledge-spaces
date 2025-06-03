@@ -1,6 +1,7 @@
 .knowledge-container {
   position: absolute;
   width: 250px;
+  touch-action: none;
 }
 
 .selected {
