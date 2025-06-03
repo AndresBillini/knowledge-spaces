@@ -5,12 +5,13 @@
   background-color: rgb(54, 56, 56);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  height: 50px;
   z-index: 10;
 }
 
 @media screen and (width <= 800px) {
   .nav-bar {
-    bottom: 2.5%;
+    bottom: 10px;
     left: 5%;
   }
 }
@@ -26,14 +27,10 @@
   padding: 1rem;
   display: flex;
   align-items: center;
+  max-width: 15px;
   overflow: hidden;
-  max-width: 20px;
   transition: max-width 0.3s ease;
   white-space: nowrap;
-}
-
-.nav-bar li:hover {
-  max-width: 200px;
 }
 
 .nav-bar li:not(:last-of-type) {
@@ -55,12 +52,21 @@
   transition: opacity 0.3s ease;
 }
 
-.nav-bar li:hover span {
-  opacity: 1;
-}
-
 .nav-bar img {
   width: 18px;
   height: 18px;
   margin-right: 5px;
+}
+
+@media screen and (width >= 800px) {
+  .nav-bar li {
+    max-width: 20px;
+  }
+  .nav-bar li:hover {
+    max-width: 200px;
+  }
+
+  .nav-bar li:hover span {
+    opacity: 1;
+  }
 }

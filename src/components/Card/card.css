@@ -8,8 +8,10 @@
   transition: cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
-.card-container:not(.not-clickable):hover {
-  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+@media screen and (width >= 800px) {
+  .card-container:not(.not-clickable):hover {
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+  }
 }
 
 .card-container.not-clickable {
