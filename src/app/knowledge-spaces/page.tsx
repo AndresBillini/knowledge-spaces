@@ -1,14 +1,14 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { updateCards } from "@/redux/slices/savedCardsSlice";
-import Knowledge from "@/components/Card/Knowledge";
-import "./knowledge-spaces.css";
 import { addRelatedCard, removeRelatedCard } from "@/api";
+import Knowledge from "@/components/Card/Knowledge";
 import { useToast } from "@/components/Toast/ToastProvider";
 import TextBoxEditor, { TextBox } from "@/components/TextBoxEditor/TextBoxEditor";
+import "./knowledge-spaces.css";
 
 export default function Spaces() {
   const dispatch = useDispatch();
@@ -19,44 +19,33 @@ export default function Spaces() {
   const [textBoxes, setTextBoxes] = useState<TextBox[]>([]);
   const [mode, setMode] = useState<"default" | "create" | "delete">("default");
   const [selectedCard, setSelectedCard] = useState<number | null>(null);
-  const isClient = typeof window !== 'undefined';
   const dragCardId = useRef<number | null>(null);
   const dragOffset = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
   useEffect(() => {
-    if (!isClient) return;
+    if (typeof window === "undefined") return;
+  
     const stored = localStorage.getItem("positions");
     if (stored) {
       setPositions(JSON.parse(stored));
+      return;
     }
-  }, [isClient]);
-
-  useEffect(() => {
-    if (isClient) {
-      localStorage.setItem("positions", JSON.stringify(positions));
+  
+    if (cards.length > 0) {
+      const newPositions: Record<number, { x: number; y: number }> = {};
+      cards.forEach((card, index) => {
+        const x = 150 + (index % 5) * 260;
+        const y = 100 + Math.floor(index / 5) * 200;
+        newPositions[card.id] = { x, y };
+      });
+      setPositions(newPositions);
     }
-  }, [positions, isClient]);
+  }, [cards]);
 
-  useEffect(() => {
-    if (cards.length === 0) return;
-    if (!isClient || Object.keys(positions).length > 0) return;
-  
-    const newPositions: Record<number, { x: number; y: number }> = {};
-    cards.forEach((card, index) => {
-      const defaultX = 150 + (index % 5) * 260;
-      const defaultY = 100 + Math.floor(index / 5) * 200;
-      newPositions[card.id] = { x: defaultX, y: defaultY };
-    });
-  
-    setPositions(newPositions);
-  }, [isClient, cards, positions]);
-
-  const handlePointerDown = (id: number, e: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerDown = useCallback((id: number, e: React.PointerEvent<HTMLDivElement>) => {
     const canvasRect = document.querySelector(".canvas")!.getBoundingClientRect();
-
     dragCardId.current = id;
     setDraggedId(id);
-
     const pos = positions[id] ??
       {
         x: 150 + (cards.findIndex((c) => c.id === id) % 5) * 260,
@@ -67,26 +56,61 @@ export default function Spaces() {
       x: e.clientX - canvasRect.left - pos.x,
       y: e.clientY - canvasRect.top - pos.y,
     };
-
     window.addEventListener("pointermove", handlePointerMove);
     window.addEventListener("pointerup", handlePointerUp);
-  };
+  }, [positions])
 
-  const handlePointerMove = (e: PointerEvent) => {
+  const handlePointerMove = useCallback((e: PointerEvent) => {
     if (dragCardId.current === null) return;
     const id = dragCardId.current;
     const canvasRect = document.querySelector(".canvas")!.getBoundingClientRect();
     const newX = e.clientX - canvasRect.left - dragOffset.current.x;
     const newY = e.clientY - canvasRect.top - dragOffset.current.y;
     setPositions((prev) => ({ ...prev, [id]: { x: newX, y: newY } }));
-  };
+  }, []);
 
-  const handlePointerUp = () => {
+  const handlePointerUp = useCallback(() => {
     dragCardId.current = null;
     setDraggedId(null);
     window.removeEventListener("pointermove", handlePointerMove);
     window.removeEventListener("pointerup", handlePointerUp);
-  };
+  }, [handlePointerMove]);
+
+  const handleCardClick = useCallback(async (cardId: number) => {
+    if (mode === "default") return;
+
+    if (selectedCard === null) {
+      setSelectedCard(cardId);
+      return;
+    } 
+    
+    if (selectedCard !== cardId) {
+      const fromId = selectedCard;
+      const toId = cardId;
+      
+      const fromCard = cards.find((c) => c.id === fromId);
+      const alreadyRelated = fromCard?.related.includes(toId) ?? false;
+
+      try {
+        if (mode === "create" && !alreadyRelated) await addRelatedCard(fromId, toId);
+        if (mode === "delete" && alreadyRelated) await removeRelatedCard(fromId, toId);
+      } catch (error) {
+        toast(error as string, "error");
+      }
+
+      const updatedCards = cards.map((c) => {
+        if (c.id !== fromId) return c;
+        if (mode === "create" && !alreadyRelated) return { ...c, related: [...c.related, toId] };
+        if (mode === "delete" && alreadyRelated) return { ...c, related: c.related.filter((id) => id !== toId) };
+        return c;
+      });
+
+      dispatch(updateCards(updatedCards))
+
+      setSelectedCard(null);
+      setMode("default");
+    }
+  }, [cards, dispatch, mode, selectedCard, toast]);
 
   return (
     <>
@@ -130,54 +154,7 @@ export default function Spaces() {
               isDragging={draggedId === card.id}
               isSelected={selectedCard === card.id}
               mode={mode}
-              onClick={async () => {
-                if (mode === "default") return;
-            
-                if (selectedCard === null) {
-                  setSelectedCard(card.id);
-                } else if (selectedCard !== card.id) {
-                  const fromId = selectedCard;
-                  const toId = card.id;
-                  
-                  const fromCard = cards.find((c) => c.id === fromId);
-                  const alreadyRelated = fromCard?.related.includes(toId) ?? false;
-
-                  if (mode === "create" && !alreadyRelated) {
-                    try {
-                      await addRelatedCard(fromId, toId);
-                    } catch (error) {
-                      toast(error as string, "error");
-                    }
-                  }
-
-                  if (mode === "delete" && alreadyRelated) {
-                    try {
-                      await removeRelatedCard(fromId, toId);
-                    } catch (error) {
-                      toast(error as  string, "error");
-                    }
-                  }
-
-                  const updatedCards = cards.map((c) => {
-                    if (c.id !== fromId) return c;
-
-                    if (mode === "create" && !alreadyRelated) {
-                      return { ...c, related: [...c.related, toId] };
-                    }
-
-                    if (mode === "delete" && alreadyRelated) {
-                      return { ...c, related: c.related.filter((id) => id !== toId) };
-                    }
-
-                    return c;
-                  });
-            
-                  dispatch(updateCards(updatedCards))
-            
-                  setSelectedCard(null);
-                  setMode("default");
-                }
-              }}
+              onClick={() => handleCardClick(card.id)}
             />
           );
         })}
