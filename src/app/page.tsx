@@ -1,95 +1,96 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
 
-export default function Home() {
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { getCards } from "@/api";
+import SearchBar from "@/components/SearchBar/SearchBar";
+import Spinner from "@/components/Spinner/Spinner";
+import CardList from "@/components/CardList/CardList";
+import { CardModel, PaginationCards } from "@/models/Card";
+import "./page.module.css";
+
+export default function HomePage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [isLoading, setIsLoading] = useState(false);
+  const [cards, setCards] = useState<CardModel[]>([]);
+  const [nextPageUrl, setNextPageUrl] = useState<string | undefined>(undefined);
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
+  const observerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      const search = searchParams.get("search") || "";
+      const page = searchParams.get("page") || "1";
+      const data = await getCards(page, search);
+      setCards(data.results);
+      setNextPageUrl(data.next);
+    };
+
+    fetchInitialData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);// Only for initial fetch
+
+  const fetchMore = async (url: string) => {
+    if (!url) return;
+
+    const parsedUrl = new URL(url);
+    const search = parsedUrl.searchParams.get("search") || "";
+    const page = parsedUrl.searchParams.get("page") || "1";
+
+    setIsLoading(true);
+    const data: PaginationCards = await getCards(page, search);
+    setCards((prev) => [...prev, ...data.results]);
+    setNextPageUrl(data.next);
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout | null = null;
+
+    const observer = new IntersectionObserver(
+      async (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && nextPageUrl) {
+          timeout = setTimeout(() => fetchMore(nextPageUrl), 300);
+        }
+      },
+      { rootMargin: "200px" }
+    );
+
+    if (observerRef.current) observer.observe(observerRef.current);
+
+    return () => {
+      observer.disconnect();
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [nextPageUrl]);
+
+  const handleSearchInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    router.replace(`/?search=${value}`); // update the query params
+    setCards([]);
+    setNextPageUrl(undefined);
+    const data = await getCards("1", value);
+    setCards(data.results);
+    setNextPageUrl(data.next);
+  };
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <main className="main-container">
+      <SearchBar searchTerm={searchTerm} handleSearchInput={handleSearchInput} />
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      {cards.length > 0 && <CardList cards={cards} />}
+
+      {!!nextPageUrl && (
+        <>
+          <div ref={observerRef} className="observer" />
+          {isLoading && <Spinner />}
+        </>
+      )}
+
+      {!nextPageUrl && <p className="no-more-results">No more results</p>}
+    </main>
   );
 }

@@ -1,0 +1,162 @@
+.card-container {
+  position: relative;
+  background: #ffffff;
+  padding: 1rem;
+  border-radius: 0.9375rem;
+  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.card-container:not(.not-clickable):hover {
+  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+.card-container.not-clickable {
+  cursor: default;
+}
+
+.disable-user-select {
+  user-select: none;
+}
+
+.is-knowledge-card {
+  max-height: 200px;
+  overflow-y: scroll;
+  cursor: move;
+}
+
+.article-container {
+  display: flex;
+  flex-direction: row;
+}
+
+.content-column {
+  flex: 1;
+}
+
+.content-column.margin {
+  margin-right: 1rem;
+}
+
+.image-column {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+}
+
+.article-image {
+  width: 85px;
+  height: auto;
+  border-radius: 4px;
+}
+
+.card-title {
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-size: 20px;
+  margin-block-start: 0;
+  margin-block-end: 0;
+  line-height: 1.2;  
+}
+
+.card-description {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 300;
+  margin-block-start: 0;
+  margin-block-end: 0;
+  margin-top: 0.83em;
+  word-break: break-word;
+}
+
+.card-url {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-size: 12px;
+  font-weight: 400;
+  color: #00AAFF;
+  text-decoration: none;
+}
+
+.card-url:hover {
+  text-decoration: underline;
+}
+
+.card-image {
+  width: 70%;
+  height: auto;
+  border-radius: 8px;
+  margin: 0 15%;
+}
+
+.social-video {
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.card-footer {
+  display: flex;
+  flex-direction: row;
+  margin-top: 10px;
+  align-items: center;
+}
+
+.save-button {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+}
+
+.card-author {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-size: 12px;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  aspect-ratio: 16 / 9;
+  margin: 1rem auto;
+}
+
+.video-wrapper iframe {
+  width: 100%;
+  height: auto;
+  border: none;
+  border-radius: 8px;
+  aspect-ratio: 16 / 9;
+}
+
+.thumbnail {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.play-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3rem;
+  color: white;
+  text-shadow: 0 0 10px black;
+}

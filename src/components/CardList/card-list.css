@@ -1,0 +1,7 @@
+.cardlist-container {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  padding: 0;
+  row-gap: 2rem;
+}

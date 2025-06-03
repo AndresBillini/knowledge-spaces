@@ -1,0 +1,17 @@
+.knowledge-container {
+  position: absolute;
+  width: 250px;
+}
+
+.selected {
+  border: 1px solid;
+  border-radius: .9375rem;
+}
+
+.selected.create {
+  border-color: #00AAFF;
+}
+
+.selected.delete {
+  border-color: red;
+}

@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Knowledge Spaces
 
-## Getting Started
+## Overview
 
-First, run the development server:
+Knowledge Spaces is an interactive application built using React, Redux, and Next.js. It enables users to create, view, and relate knowledge cards in a spatial canvas. Each card may represent articles, videos, posts, and more — offering a clean and modern UX to explore information visually.
 
-```bash
+⸻
+
+🧠 Key Decisions & Approach
+ • Next.js 15 App Router was used for routing and server-side rendering.
+ • Redux Toolkit was implemented for state management across components, including card states and navigation.
+ • Component-Based Architecture promotes modularity and reuse (e.g., Article, SublimeVideo, etc.).
+ • Jest and React Testing Library were integrated for unit and integration testing.
+ • TypeScript enforces type safety and improves development velocity.
+
+⸻
+
+🛠 How to Run Locally
+
+## 1. Install Dependencies
+
+npm install
+
+or
+
+yarn install
+
+## 2. Start the Development Server
+
 npm run dev
-# or
+
+or
+
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit <http://localhost:3000> in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 3. Run Tests
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+npm run test
 
-## Learn More
+or
 
-To learn more about Next.js, take a look at the following resources:
+yarn test
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+⸻
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+🚀 Performance Optimizations
+ • Next/Image was used for optimized asset loading.
+ • Redux slices were separated and memoized where necessary.
+ • Selective Component Mocking for test performance.
 
-## Deploy on Vercel
+⸻
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+⚠️ Challenges Faced
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+• Testing with Next.js 15 & TypeScript: Required setup of ts-jest, resolution of path aliases, and custom mocks for Next Image and router.
+
+• Mocking SVGs and Styles: Setup of moduleNameMapper was required for proper mocking of .css and .svg files.
+
+• Dynamic Imports for Assets: next/image required absolute or root-based paths in tests.
+
+• Creating the Knowledge Spaces page: A major challenge involved designing a flexible UI where cards could be positioned, connected, and interacted with fluidly. Building the logic to create directional relationships between cards and managing card placement took significant effort to get right. Integrating this with Redux while maintaining good performance and UX was a deep engineering task.
+
+⸻
+
+🧩 What Could Be Improved
+ • Code Splitting: Introduce dynamic imports for heavy content components.
+ • UI Polish: Enhance visual design (hover states, animations, edge case layout).
+ • Accessibility: Add keyboard navigation and ARIA attributes.
+ • Undo/Redo: Add history management for relationships and card movement.
+ • E2E Testing: hile the infrastructure is in place for unit testing, I didn't have the chance to fully implement testing.
+ • CI/CD: Add GitHub Actions for automated testing and linting.
+
+⸻
+
+👨‍💻 Author
+
+Andrés Billini
+
+⸻
+
+🙏 Thank You
+
+Thank you for the opportunity to work on this challenge. I enjoyed the intersection of visual creativity, React logic, and data management. Looking forward to feedback!

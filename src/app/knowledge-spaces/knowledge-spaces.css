@@ -1,0 +1,90 @@
+.canvas {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: white;
+  background-image:
+    radial-gradient(circle, #ddd 1px, transparent 1px);
+}
+
+.connections {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.legend {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: #fff;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 14px;
+  z-index: 2000;
+  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 4px;
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  user-select: none;
+}
+
+.legend-line {
+  width: 24px;
+  height: 3px;
+  border-radius: 1px;
+  display: inline-block;
+}
+
+.legend-line.gray {
+  background-color: gray;
+}
+
+.legend-line.red {
+  background-color: red;
+}
+
+.relationship-tools {
+  position: fixed;
+  top: 100px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 2000;
+}
+
+.relationship-tools button {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: #f4f4f4;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.relationship-tools button.create {
+  background-color: #00AAFF;
+  color: white;
+}
+
+.relationship-tools button.delete {
+  background-color: #de6565;
+  color: white;
+}
+
+.relationship-tools button.create.active {
+  background-color: #76b5f9;
+}
+
+.relationship-tools button.delete.active {
+  background-color: #ea8c8c;
+}
